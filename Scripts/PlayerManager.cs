@@ -12,16 +12,18 @@ public class PlayerManager : MonoBehaviour
     [HideInInspector] public GameObject instance;
     public bool unconscious = false;
     public GameObject snitch;
-    private float collisionAvoidanceRadiusThreshold = 5;
+    private float collisionAvoidanceRadiusThreshold = 10;
 
-    private float aggressiveness;
-    private float maxExhaustion = 5f;
+    private double aggressiveness;
+    [HideInInspector] public double collisionValue;
+    private float maxExhaustion = 60f;
     private float maxVelocity = 16f;
     private float weight = 80;
     private float currentExhaustion = 0;
     private Transform target;
     private Rigidbody Rigidbody;
-    private int fnum = 0;
+    System.Random rnd = new System.Random();
+    private PlayerManager collidedPlayer;
 
     //private PlayerMovement Movement;       
     private GameObject canvasGameObject;
@@ -29,17 +31,14 @@ public class PlayerManager : MonoBehaviour
     public void Awake()
     {
         Rigidbody = GetComponent<Rigidbody>();
-    }
-
-    public void Setup() {
-        
         MeshRenderer renderer = instance.GetComponent<MeshRenderer>();
         renderer.material.color = playerColor;
 
-        aggressiveness = UnityEngine.Random.Range(0, 10);
-        maxExhaustion = UnityEngine.Random.Range(5, 10);
-        maxVelocity = UnityEngine.Random.Range(10, 15);
-        weight = UnityEngine.Random.Range(50, 100);
+        this.aggressiveness = UnityEngine.Random.Range(19, 37);
+        Debug.Log(aggressiveness);
+        this.maxExhaustion = UnityEngine.Random.Range(35, 78);
+        this.maxVelocity = UnityEngine.Random.Range(14, 20);
+        this.weight = UnityEngine.Random.Range(63, 107);
     }
 
     private void FixedUpdate()
@@ -52,8 +51,7 @@ public class PlayerManager : MonoBehaviour
         else
         {
             Rigidbody.useGravity = true;
-            Debug.Log("Unconscious");
-        }    
+        }
     }
 
 
@@ -64,6 +62,7 @@ public class PlayerManager : MonoBehaviour
 
     }
 
+    // Decide which way to move
     private void Move()
     {
         snitch = GameObject.Find("Snitch(Clone)");
@@ -73,8 +72,8 @@ public class PlayerManager : MonoBehaviour
         Vector3 acceleration = Vector3.zero;
 
         // Change the acceleration
-        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target)) * 2; // Attraction to the snitch
-        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce());   // Repel from other players force
+        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target)) * 5; // Attraction to the snitch
+        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce()) * 7;   // Repel from other players force
 
 
         acceleration /= weight / 100f; // Heavier objects accelerate more slowly
@@ -85,7 +84,6 @@ public class PlayerManager : MonoBehaviour
 
         // Increase exhaustion levels
         currentExhaustion += 0.01f;
-        Debug.Log("Exhaustion: " + currentExhaustion);
         if (currentExhaustion > maxExhaustion)
         {
             unconscious = true;
@@ -140,7 +138,6 @@ public class PlayerManager : MonoBehaviour
             out RaycastHit hitInfo,
             collisionAvoidanceRadiusThreshold))
         {
-            Debug.Log("~Forward collision detected~");
             tempForce += hitInfo.point;
         }
 
@@ -150,5 +147,48 @@ public class PlayerManager : MonoBehaviour
         }
 
         return Vector3.zero;
+    }
+
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.name == "Player(Clone)")
+        {
+            collidedPlayer = collision.collider.GetComponent<PlayerManager>();
+            Debug.Log("Collision w/ another player");
+            collisionValue = aggressiveness * (rnd.NextDouble() * (1.2 - 0.8) + 0.8) * (1 - currentExhaustion / maxExhaustion);
+        }
+    }
+
+    public double GetCollisionValue()
+    {
+        return collisionValue;
+    }
+
+    public string GetTeamText()
+    {
+        return teamText;
+    }
+
+    void LateUpdate()
+    {
+        if (collidedPlayer != null)
+        {
+            if (collisionValue < collidedPlayer.GetCollisionValue())
+            {
+                unconscious = true;
+            }
+            if (teamText == collidedPlayer.GetTeamText() && UnityEngine.Random.Range(1, 100) > 5)
+            {
+                unconscious = false;
+                Debug.Log("Same team collision");
+            }
+
+            Debug.Log("My collision value: " + collisionValue + " | Their collision value: " + collidedPlayer.GetCollisionValue() + " | My state: " + unconscious);
+        }
+
+        
+
+        collidedPlayer = null;
     }
 }
