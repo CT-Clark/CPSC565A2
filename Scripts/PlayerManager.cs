@@ -10,18 +10,18 @@ public class PlayerManager : MonoBehaviour
     [HideInInspector] public int playerNumber;
     [HideInInspector] public string coloredPlayerText;
     [HideInInspector] public GameObject instance;
-    public bool tackled = false;
+    public bool unconscious = false;
     public GameObject snitch;
     private float collisionAvoidanceRadiusThreshold = 5;
 
     private float aggressiveness;
-    private float maxExhaustion;
+    private float maxExhaustion = 5f;
     private float maxVelocity = 16f;
     private float weight = 80;
     private float currentExhaustion = 0;
     private Transform target;
     private Rigidbody Rigidbody;
-
+    private int fnum = 0;
 
     //private PlayerMovement Movement;       
     private GameObject canvasGameObject;
@@ -45,7 +45,15 @@ public class PlayerManager : MonoBehaviour
     private void FixedUpdate()
     {
         // Adjust the rigidbodies position and orientation in FixedUpdate.
-        Move();
+        if (!unconscious)
+        {
+            Move();
+        }
+        else
+        {
+            Rigidbody.useGravity = true;
+            Debug.Log("Unconscious");
+        }    
     }
 
 
@@ -69,13 +77,21 @@ public class PlayerManager : MonoBehaviour
         acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce());   // Repel from other players force
 
 
-        acceleration /= weight / 10f; // Heavier objects accelerate more slowly
+        acceleration /= weight / 100f; // Heavier objects accelerate more slowly
         velocity += acceleration * Time.deltaTime;
         velocity = velocity.normalized * Mathf.Clamp(velocity.magnitude, 0, maxVelocity);
         Rigidbody.velocity = velocity;
         transform.forward = Rigidbody.velocity.normalized;
 
+        // Increase exhaustion levels
+        currentExhaustion += 0.01f;
+        Debug.Log("Exhaustion: " + currentExhaustion);
+        if (currentExhaustion > maxExhaustion)
+        {
+            unconscious = true;
+        }
     }
+
 
     /// <summary>
     /// Normalizes the steering force and clamps it.
@@ -99,15 +115,16 @@ public class PlayerManager : MonoBehaviour
         Vector3 force = transform.position;
         Vector3 tempForce = Vector3.zero;
 
-        
-
+        // Look around within a certain radius for other players to avoid collisions
         Collider[] colliders = Physics.OverlapSphere(transform.position, collisionAvoidanceRadiusThreshold);
         if (colliders.Length > 0)
         {
             for (int i = 0; i < colliders.Length; i++)
             {
                 Rigidbody targetRigidbody = colliders[i].GetComponent<Rigidbody>();
-                if (!targetRigidbody)
+                if (!targetRigidbody) // Don't worry about non-physics objects
+                    continue;
+                if (colliders[i].GetComponent<Light>()) // Don't be repulsed from the snitch
                     continue;
 
                 tempForce += targetRigidbody.position;
