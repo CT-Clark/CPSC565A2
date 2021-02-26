@@ -3,44 +3,67 @@ using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
+    #region Initialization
+
+    /// <summary>
+    /// Executes once on awake.
+    /// </summary>
+    public void Awake()
+    {
+        Rigidbody = GetComponent<Rigidbody>();
+        aggressiveness = UnityEngine.Random.Range(19, 37);
+        maxExhaustion = UnityEngine.Random.Range(35, 78);
+        maxVelocity = UnityEngine.Random.Range(14, 20);
+        weight = UnityEngine.Random.Range(63, 107);
+    }
+
+    void Start()
+    {
+        MeshRenderer renderer = GetComponent<MeshRenderer>();
+        renderer.material.color = playerColor;
+    }
+
+    
+    public void Initialize(TeamManager teamScript)
+    {
+        TeamManager team = teamScript;
+    }
+
+    #endregion
+
+    #region Field/Properties
+
+    private Rigidbody Rigidbody;
+    private TeamManager team;
+    private GameObject snitch;
+    private float collisionAvoidanceRadiusThreshold = 10;
+    private Transform target;
     public Color playerColor;
-    public string playerTeamText;
     public Transform spawnPoint;
     public string teamText;
-    [HideInInspector] public int playerNumber;
-    [HideInInspector] public string coloredPlayerText;
-    [HideInInspector] public GameObject instance;
     public bool unconscious = false;
-    public GameObject snitch;
-    private float collisionAvoidanceRadiusThreshold = 10;
-
-    private double aggressiveness;
+    public double aggressiveness;
+    public float maxExhaustion;
+    public float maxVelocity;
+    public float weight;
+    public float currentExhaustion = 0;
     [HideInInspector] public double collisionValue;
-    private float maxExhaustion = 60f;
-    private float maxVelocity = 16f;
-    private float weight = 80;
-    private float currentExhaustion = 0;
-    private Transform target;
-    private Rigidbody Rigidbody;
+   
+    
+
     System.Random rnd = new System.Random();
     private PlayerManager collidedPlayer;
 
     //private PlayerMovement Movement;       
     private GameObject canvasGameObject;
 
-    public void Awake()
-    {
-        Rigidbody = GetComponent<Rigidbody>();
-        MeshRenderer renderer = instance.GetComponent<MeshRenderer>();
-        renderer.material.color = playerColor;
+    #endregion
 
-        this.aggressiveness = UnityEngine.Random.Range(19, 37);
-        Debug.Log(aggressiveness);
-        this.maxExhaustion = UnityEngine.Random.Range(35, 78);
-        this.maxVelocity = UnityEngine.Random.Range(14, 20);
-        this.weight = UnityEngine.Random.Range(63, 107);
-    }
+    #region Methods
 
+    /// <summary>
+    /// A fixed update for calculating physics engine results, not tied to framerate.
+    /// </summary>
     private void FixedUpdate()
     {
         // Adjust the rigidbodies position and orientation in FixedUpdate.
@@ -54,26 +77,20 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-
-    public void Reset()
-    {
-        instance.transform.position = spawnPoint.position;
-        instance.transform.rotation = spawnPoint.rotation;
-
-    }
-
-    // Decide which way to move
+    /// <summary>
+    /// Decides where and how to move.
+    /// </summary>
     private void Move()
     {
-        snitch = GameObject.Find("Snitch(Clone)");
+        snitch = GameObject.Find("SnitchTemplate(Clone)");
         target = snitch.transform;
 
         Vector3 velocity = Rigidbody.velocity;
         Vector3 acceleration = Vector3.zero;
 
         // Change the acceleration
-        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target)) * 5; // Attraction to the snitch
-        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce()) * 7;   // Repel from other players force
+        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target) * 2); // Attraction to the snitch
+        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce());   // Repel from other players force
 
 
         acceleration /= weight / 100f; // Heavier objects accelerate more slowly
@@ -89,7 +106,6 @@ public class PlayerManager : MonoBehaviour
             unconscious = true;
         }
     }
-
 
     /// <summary>
     /// Normalizes the steering force and clamps it.
@@ -149,10 +165,13 @@ public class PlayerManager : MonoBehaviour
         return Vector3.zero;
     }
 
-
+    /// <summary>
+    /// What to do when the object detects a collision.
+    /// </summary>
+    /// <param name="collision"></param>
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.name == "Player(Clone)")
+        if (collision.gameObject.name == "PlayerTemplate(Clone)")
         {
             collidedPlayer = collision.collider.GetComponent<PlayerManager>();
             Debug.Log("Collision w/ another player");
@@ -170,10 +189,14 @@ public class PlayerManager : MonoBehaviour
         return teamText;
     }
 
+    /// <summary>
+    /// Is called after update. Used to implement collision value checking to ensure both parties have calculated their values when asked.
+    /// </summary>
     void LateUpdate()
     {
         if (collidedPlayer != null)
         {
+            unconscious = false;
             if (collisionValue < collidedPlayer.GetCollisionValue())
             {
                 unconscious = true;
@@ -186,9 +209,10 @@ public class PlayerManager : MonoBehaviour
 
             Debug.Log("My collision value: " + collisionValue + " | Their collision value: " + collidedPlayer.GetCollisionValue() + " | My state: " + unconscious);
         }
-
-        
-
         collidedPlayer = null;
     }
+
+
+
+    #endregion
 }
