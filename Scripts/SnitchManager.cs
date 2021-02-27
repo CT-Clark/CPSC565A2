@@ -7,7 +7,7 @@ public class SnitchManager : MonoBehaviour
     public Color snitchColor;
     public GameObject instance;
     private float weight = 1;
-    private float maxVelocity = 50;
+    private float maxVelocity = 10;
     private Rigidbody Rigidbody;
 
 
@@ -21,8 +21,10 @@ public class SnitchManager : MonoBehaviour
     public void Awake()
     {
         Rigidbody = GetComponent<Rigidbody>();
+        this.name = "Snitch";
     }
 
+    /*
     // Start is called before the first frame update
     void Start()
     {
@@ -34,6 +36,7 @@ public class SnitchManager : MonoBehaviour
     {
         
     }
+    */
 
     // Update but called independantly of framerate
     void FixedUpdate()
@@ -41,7 +44,9 @@ public class SnitchManager : MonoBehaviour
         Move();
     }
 
-    // We need the snitch to move about randomly, but smoothly
+    /// <summary>
+    /// Move about randomly, but smoothly
+    /// </summary>
     private void Move()
     {
         Vector3 target = Vector3.zero;
@@ -51,14 +56,12 @@ public class SnitchManager : MonoBehaviour
         Vector3 acceleration = Vector3.zero;
 
         // Change the acceleration
-        acceleration += NormalizeSteeringForce(ComputeMovement(target)) * 2; // Attraction to the snitch
-
-
-        acceleration /= weight / 0.1f; // Heavier objects accelerate more slowly
+        acceleration += NormalizeSteeringForce(ComputeMovement(target)) * 2;
+        acceleration /= weight / 1f; // Heavier objects accelerate more slowly
         velocity += acceleration * Time.deltaTime;
         velocity = velocity.normalized * Mathf.Clamp(velocity.magnitude, 0, maxVelocity);
         Rigidbody.velocity = velocity;
-        transform.forward = Rigidbody.velocity.normalized;
+        transform.forward = Rigidbody.velocity.normalized; // Change the orientation
     }
 
     /// <summary>
@@ -66,7 +69,7 @@ public class SnitchManager : MonoBehaviour
     /// </summary>
     private Vector3 NormalizeSteeringForce(Vector3 force)
     {
-        return force.normalized * Mathf.Clamp(force.magnitude, 0.5f, maxVelocity);
+        return force.normalized * Mathf.Clamp(force.magnitude, 0, maxVelocity);
     }
 
     private Vector3 ComputeMovement(Vector3 target)
