@@ -22,16 +22,10 @@ namespace Complete
             SpawnSnitch();
         }
 
-
-        private void Start()
-        {
-            
-            
-        }
-
         // Updates tied to framerate
         void Update()
         {
+            // If the teams haven't won yet, display the score
             if (teams[0].points < 100 || teams[1].points < 100)
             {
                 messageText.text = PlayingMessage();
@@ -55,7 +49,10 @@ namespace Complete
             snitches[0].Setup();
         }
 
-
+        /// <summary>
+        /// Creates the message used during playing
+        /// </summary>
+        /// <returns>string msg</returns>
         public string PlayingMessage()
         {
             string msg = "";
