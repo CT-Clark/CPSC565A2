@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+// This class controls the ability to move the camera during game mode
+
+using UnityEngine;
 
 namespace Complete
 {
