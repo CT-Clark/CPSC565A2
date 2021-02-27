@@ -21,15 +21,10 @@ public class PlayerManager : MonoBehaviour
 
         // Set up teams references for easy access
         team = GameObject.Find(teamText + "Spawn").GetComponent<TeamManager>();
-        if (teamText == "Gryffindor")
-        {
-            otherTeam = GameObject.Find("SlytherinSpawn").GetComponent<TeamManager>();
-        }
-        else if (teamText == "Slytherin")
-        {
-            otherTeam = GameObject.Find("GryffindorSpawn").GetComponent<TeamManager>();
-        }
+        if (teamText == "Gryffindor") { otherTeam = GameObject.Find("SlytherinSpawn").GetComponent<TeamManager>(); }
+        else if (teamText == "Slytherin") { otherTeam = GameObject.Find("GryffindorSpawn").GetComponent<TeamManager>(); }
  
+        // Set the player's attributes
         if (teamText == "Gryffindor") {
             weight = BoxMuller(75f, 12f);
             maxVelocity = BoxMuller(18f, 2f);
@@ -37,7 +32,7 @@ public class PlayerManager : MonoBehaviour
             maxExhaustion = BoxMuller(65f, 13f);
             underDogValue = BoxMuller(10f, 2f);
         }
-        else 
+        else // Team is Slytherin
         {
             weight = BoxMuller(85f, 17f);
             maxVelocity = BoxMuller(16f, 2f);
@@ -61,23 +56,19 @@ public class PlayerManager : MonoBehaviour
     private float collisionAvoidanceRadiusThreshold = 5; // Radius to calculate collision avoidance
     private bool recovering = false;
     public bool spawning = false;
-    public Color playerColor;
+    public Color playerColor; // This player's teamcolour
     public Vector3 spawnPoint; // Point this individual player spawned at to respawn at
-    public string teamText;
-    public GameObject teamObject;
+    public string teamText; // Name of the team this player belongs to
     public bool unconscious = false;
-    public double aggressiveness;
-    public float maxExhaustion;
-    public float maxVelocity;
-    public float weight;
+    public double aggressiveness; // Affects collision outcomes
+    public float maxExhaustion; // How long the player can move before becoming exhausted
+    public float maxVelocity; // Max speed
+    public float weight; // Affects collision outcomes and acceleration
     public float currentExhaustion = 0;
-    public float underDogValue;
-    [HideInInspector] public double collisionValue;
+    public float underDogValue; // The amount to increase this player's maxVelocity if the other team is 3+ points ahead
+    [HideInInspector] public double collisionValue; // Used in collision calculations
     System.Random rnd = new System.Random();
-    private PlayerManager collidedPlayer;
-
-    //private PlayerMovement Movement;       
-    private GameObject canvasGameObject;
+    private PlayerManager collidedPlayer; // Used in collision calculations     
 
     #endregion
 
@@ -91,8 +82,8 @@ public class PlayerManager : MonoBehaviour
         // Adjust the rigidbodies position and orientation in FixedUpdate.
         if (!unconscious)
         {
-            // Recover from exhaustion
-            if (currentExhaustion > maxExhaustion - 1f && !recovering)
+            // Recover from exhaustion if you're just about to fall unconscious
+            if (currentExhaustion > maxExhaustion - 1f && !recovering) 
             {
                 recovering = true;
                 Rigidbody.velocity = Vector3.zero;
@@ -100,7 +91,7 @@ public class PlayerManager : MonoBehaviour
             } 
             else if (recovering)
             {
-                currentExhaustion -= 0.1f;
+                currentExhaustion -= 0.1f; // Faster to recover than to play
                 if (currentExhaustion < maxExhaustion / 2) // Get back down to half maxExhaustion
                     recovering = false;
             }
@@ -111,7 +102,6 @@ public class PlayerManager : MonoBehaviour
                     spawning = false;
                     currentExhaustion = 0f; // Reset the exhaustion (They've "rested")
                 }
-
             }
             else // If not exhausted, recovering from exhaustion, or respawning... move
             {
@@ -131,9 +121,6 @@ public class PlayerManager : MonoBehaviour
                 spawning = true;
             }
         }
-
-        Debug.Log(BoxMuller(85f, 17f));
-
     }
 
     /// <summary>
@@ -175,11 +162,9 @@ public class PlayerManager : MonoBehaviour
 
         acceleration /= Rigidbody.mass / 75f; // Heavier objects accelerate more slowly
         velocity += acceleration * Time.deltaTime;
-        velocity = velocity.normalized * Mathf.Clamp(velocity.magnitude, 0, otherTeam.points > team.points ? maxVelocity + underDogValue : maxVelocity);
+        velocity = velocity.normalized * Mathf.Clamp(velocity.magnitude, 0, otherTeam.points > team.points + 2 ? maxVelocity + underDogValue : maxVelocity);
         Rigidbody.velocity = velocity;
-        transform.forward = Rigidbody.velocity.normalized;
-
-        transform.up = Rigidbody.velocity;
+        transform.up = Rigidbody.velocity.normalized; // Orient the model the proper way
 
         // Increase exhaustion levels
         currentExhaustion += 0.01f * (otherTeam.points > team.points ? underDogValue/3f : 1f);
@@ -194,7 +179,7 @@ public class PlayerManager : MonoBehaviour
     /// </summary>
     private Vector3 NormalizeSteeringForce(Vector3 force)
     {
-        return force.normalized * Mathf.Clamp(force.magnitude, 0, otherTeam.points > team.points ? maxVelocity + underDogValue : maxVelocity);
+        return force.normalized * Mathf.Clamp(force.magnitude, 0, otherTeam.points > team.points + 2 ? maxVelocity + underDogValue : maxVelocity);
     }
 
     /// <summary>
