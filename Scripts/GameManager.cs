@@ -26,14 +26,14 @@ namespace Complete
         void Update()
         {
             // If the teams haven't won yet, display the score
-            if (teams[0].points < 100 || teams[1].points < 100)
+            if (teams[0].points < 100 && teams[1].points < 100)
             {
                 messageText.text = PlayingMessage();
             }
             else
             {
                 gameWinner = GetGameWinner();
-                messageText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(gameWinner.teamColor) + ">" + gameWinner.teamText + ": </color> WINS THE GAME";
+                messageText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(gameWinner.teamColor) + ">" + gameWinner.teamText + " WINS THE GAME!</color>";
             }
         }
 
