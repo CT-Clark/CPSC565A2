@@ -1,6 +1,4 @@
-# CPSC565A2
-# Cody Clark
-# 30010560
+# Cody Clark 30010560 CPSC565A2
 This repo holds an implementation of a simplified Quidditch simulation written in Unity for assignment 2 of CPSC565 - Emergent Computing - during the Winter semester of 2021. 
 
 Disclaimer:
