@@ -1,6 +1,56 @@
 # CPSC565A2
-This repo holds an implementation of a simplified Quidditch simulation written in Unity for assignment 2 of CPSC565. 
+This repo holds an implementation of a simplified Quidditch simulation written in Unity for assignment 2 of CPSC565 - Emergent Computing - during the Winter semester of 2021. 
 
-Currently a lot of the code implemented has been based on Unity's TANKS! tutorial as a framework. The tutorial can be found here: https://www.youtube.com/watch?v=paLLfWd2k5A&list=PLclF8feY8EKLw5Un6Z2Syt2_35qsdpnHt In places where the code looks similar it's because it is and I take no credit for those pieces of code. This project is not to be used for making a profit. 
+Disclaimer:
+Some of the code implemented is from/based on Unity's TANKS! tutorial which can be found here: https://www.youtube.com/watch?v=paLLfWd2k5A&list=PLclF8feY8EKLw5Un6Z2Syt2_35qsdpnHt 
+https://github.com/omaddam/Boids-Simulation has also lent a sizeable amount of code and code ideas to this progect. Any code that looks similar between this project and those sources is likely because it is, and I take no credit. This project is not intended to be used for commercial purposes. 
 
-https://github.com/omaddam/Boids-Simulation has also lent a sizeable amount of code and code ideas to this progect. Likewise any code that looks similar probably is. 
+-----------------------------
+// ----- THE PROJECT ----- //
+-----------------------------
+
+From the assignment PDF: Quidditch is a competitive sport in the wizarding world of Harry Potter, a series of fantasy novels written by J. K. Rowling. It is a game played by wizards and witches, where there’re two teams riding on flying broomsticks trying to score as many points as possible. In this assignment we will implement a simplified version of this game. Our simplified game of quidditch is played with two teams. The game involves players flying around a stadium and attempting to score 1 point by catching the golden snitch.Successive catches are worth 2 points each so it is best not to let your opponents get a streak going. The first team to 100 points wins. 
+
+This project aims to bring about emergents through the playing of quidditch. Each agent player within the game must make decisions about where to go based on a number of rules. The rules are as follows:
+  1) The goal of the game is to catch the golden snitch, therefore the agent is extremely attracted towards the snitch.
+  2) Agents who collide with structure in the game world are automatically rendered unconscious, therefore they will attempt to prevent any such collisions.
+  3) Agents who collide with other agents have a chance to be "tackled" and knocked unconscious, therefore they try to maintain a bit of distance from other players.
+
+This project placed the following requirements upon the players:
+  1) Each Quidditch player will be modeled by an object that can indicate its direction and is colour coded by team (red for Gryffindor and green for Slytherin).
+  2) Players and snitch ignore gravity while flying. 
+  3) However, you must properly implement momentum (heavier objects accelerate slower).
+  4) The snitch must be modelled by a golden sphere which can also indicate direction.
+  5) The players and snitch must be constrained within a suitably sized arena. No flying outside the bounds of the arena, and players colliding with the terrain will be considered “tackled” (see further requirements).
+  6) The snitch’s movement must be smoothly random (no jerky randomness).
+  7) Player behavior needs to be driven by forces. A force must exist which attracts the player toward the snitch, and a force must exist for players to not collide with each    other or the environment. 
+  8) Players have specific traits. Aggressiveness, max exhaustion, max velocity, weight, and current exhaustion. A Players velocity can never exceed their max Velocity.
+  9) As players move, their current exhaustion increases When current exhaustion is equal to max exhaustion a player is considered “unconscious.” 
+  10) When two players collide, a calculation must be run to determine which player becomes “unconscious”.  The calculation is as follows: (Player1Value = player1.Aggressiveness * (rng.NextDouble() * (1.2 –0.8) + 0.8) *  (1 –(player1.exhaustion / player1.maxExhaustion))Player2Value = player2.Aggressiveness * (rng.NextDouble() * (1.2 –0.8) + 0.8) * (1 –(player2.exhaustion / player2.maxExhaustion))The player with the lower value is the one to become “unconscious”. In the event of the collision being between two players on the same team only 5% of the time should it result in an “unconscious” player. 
+  11) Unconscious players ignore all forces except gravity. 
+  12) Upon colliding with the ground, an unconscious player is teleported back to its team’s starting position, put on hold for a variable number frames, and no longer considered unconscious.
+
+This project placed the following requirements upon the teams:
+  1) There should be at least 5 players in each team and at most 20, and that each team should have its own single starting point on the ground.
+  2) The traits you assign to your teams must match the following values:
+  3) Slytherin Trait Defaults: Weight: x̄= 85, σ= 17 Max Velocity: x̄= 16, σ= 2 Aggressiveness: x̄= 30, σ= 7 Max Exhaustion: x̄= 50, σ= 15
+  4) Gryffindor Trait Defaults: Weight: x̄= 75, σ= 12 Max Velocity: x̄= 18, σ= 2 Aggressiveness: x̄= 22, σ= 3 Max Exhaustion: x̄= 65, σ= 13 
+  5) Traits were implemented with a Box-Muller transform to fit a specific distribution.
+
+This project also included the following behavior requirements:
+  1) You must further come up with two more traits per team and incorporate them into the behavior of the players somehow.
+  2) You must implement some sort of behavior which inhibits players going unconscious from exhaustion. The simplest form of this will be having players stop moving to “recharge” their exhaustion.
+
+--------------------------------
+// ----- IMPLEMENTATION ----- //
+--------------------------------
+
+I will begin at the bottom of the listed requirements mentioned above.
+
+Exhaustion and Exhaustion inhibition:
+Exhaustion, contrary to what was recommended in the assignment description, was implemented on a per-physics-frame basis. Each time the player performs the Move() method their exhaustion is increased by 0.01. This gives them enough time before needing to take a break to accomplish their goals. Although the unconsciousness from exhaustion has been implemented, the agents are instructed to stop all movement and enter a recovering state if thier current exhaustion is one unit less than their maximum exhaustion. While they're recovering their reduce their exhaustion levels by 0.1, 10x as fast as their exhaustion depletes. This continues until their current exhaustion level is half of their maximum exhaustion level. The other time exhaustion level changes is when they've fallen unconscious, have hit the ground, and are respawning. I've considered this a 'rest' and reset their exhaustion levels to 0. While they're resting their is the possibility of other agents crashing into them, but that's what you get for resting in the middle of the playing field!
+
+Additional implemented traits:
+The two additional traits I've implemented to play around with the agents' max velocity trait. The first ability is an 'underdog' ability. Whenever the other team is up by 3+ points then all players on your team gain an increase to their maximum velocity by a value generated on instantiation. This allows members on those team to fly quicker to the new snitch location and have a chance at catching it before their opponents get there. There is a downside though, as this increase in max velocity comes at the price of an increased rate of exhaustion. 
+The second trait I've implemented is a 'captain' trait. The first agent created for each team is designated the 'captain', and any agents less than their captain influence radius away from the team's captain recieves a bonus to their max velocity. The captain, however, does not recieve this bonus. This leads to the captain inspiring their teammates to go forth quicker to catch the snitch before the enemy is able to. 
+Both of these traits als ouse the BoxMuller transform to generate unique random trait levels from a normal distribution upon agent instantiation. Gryffindor players have a generally higher and wider breadth of an underdog bonus (no one wants Slytherins to win, even if they are the underdogs). Gryffindor players recieve a higher bonus from being nearer to their captain, but need to be nearer to their captain than Slytherins in order to take advantage of this fact. 
