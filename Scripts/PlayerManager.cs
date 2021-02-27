@@ -36,6 +36,26 @@ public class PlayerManager : MonoBehaviour
         }
 
         Rigidbody.mass = weight;
+        if (teamText == "Gryffindor") {
+            weight = BoxMuller(75f, 12f);
+            maxVelocity = BoxMuller(18f, 2f);
+            aggressiveness = BoxMuller(22f, 3f);
+            maxExhaustion = BoxMuller(65f, 13f);
+            underDogValue = BoxMuller(10f, 2f);
+        }
+        else 
+        {
+            weight = BoxMuller(85f, 17f);
+            maxVelocity = BoxMuller(16f, 2f);
+            aggressiveness = BoxMuller(30f, 7f);
+            maxExhaustion = BoxMuller(50f, 15f);
+            underDogValue = BoxMuller(7f, 1f);
+        }
+
+        maxExhaustion = UnityEngine.Random.Range(35, 78);
+        maxVelocity = UnityEngine.Random.Range(14, 20);
+        weight = UnityEngine.Random.Range(63, 107);
+        underDogValue = UnityEngine.Random.Range(5f, 10f);
     }
 
     #endregion
@@ -96,7 +116,11 @@ public class PlayerManager : MonoBehaviour
             else if (spawning) // Spawn delay
             {
                 if (UnityEngine.Random.Range(0, 1000) < 10)
+                {
                     spawning = false;
+                    currentExhaustion = 0f; // Reset the exhaustion (They've "rested")
+                }
+
             }
             else // If not exhausted, recovering from exhaustion, or respawning... move
             {
@@ -116,6 +140,9 @@ public class PlayerManager : MonoBehaviour
                 spawning = true;
             }
         }
+
+        Debug.Log(BoxMuller(85f, 17f));
+
     }
 
     /// <summary>
@@ -258,8 +285,8 @@ public class PlayerManager : MonoBehaviour
             {
                 team.points += 1;
             }
-            team.lastPointScored = true;
 
+            team.lastPointScored = true;
             otherTeam.lastPointScored = false;
 
             // New snitch location
@@ -273,6 +300,29 @@ public class PlayerManager : MonoBehaviour
         {
             unconscious = true;
         }
+    }
+
+    /// <summary>
+    /// Generates a random number pulled from a normal distribution using the Box Muller method
+    /// In this case x is the mean and s the variance
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="s"></param>
+    /// <returns></returns>
+    private float BoxMuller(float x, float s)
+    {
+        float result = 0;
+        while (result == 0f)
+        {
+            float u = UnityEngine.Random.Range(0.0f, 1.0f);
+            float v = UnityEngine.Random.Range(0.0f, 1.0f);
+
+            result = Mathf.Sqrt(-2 * Mathf.Log(u)) * Mathf.Cos(2 * Mathf.PI * v);
+        }
+
+        result *= s;
+        result += x;
+        return result;
     }
     #endregion
 }
