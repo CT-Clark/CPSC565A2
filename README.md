@@ -57,3 +57,23 @@ Both of these traits als ouse the BoxMuller transform to generate unique random 
 
 // ----- Camera Implementation ----- //
 In order to use the gamera during play the QWEASD and arrow keys will be used. The arrow keys control rotation of the camera (Press down to look down, right to look right), the WASD keys are used to move forward/backwards/pan left/pan right respectively, while the QE keys are used to move downwards/upwards respectively. Zoom is not enabled. Technically you can position the camera wherever you want with just the WASD and arrow keys, but the QE keys help make this action just a little bit simpler. 
+
+// ----- Respawn Implementation ----- // 
+Respawning is implemented by generation a random number between 0 and 1000 inclusive, and if it's below 10 then the agent is free to resume the game. This gives a variable number of frames which the agent must wait through. 
+
+----------------------------------
+// ----- EXAMPLE GAMEPLAY ----- //
+----------------------------------
+![Record1](https://user-images.githubusercontent.com/23039052/109377316-c66ecb80-7887-11eb-9ce7-626acfbb438e.gif)
+In this image we see an example of typical gameplay. The direction of the agents are indicated with arrows protruding from their models, and the golden snitch's location and direction is indicated by a yellow arrow protruding from it. (Not pointing to it) We see that when players collide they tumble to the ground until they hit it, and then they reappear near their team's 'respawn zone'. The exact location is randomized upon their instantiation so that all players on a team start from a very slightly different location. This example was produced without the ground/scenery collision forces, as well as without the forces which encourage agents to stay further apart from each other. 
+
+![Record2](https://user-images.githubusercontent.com/23039052/109377386-51e85c80-7888-11eb-996f-0ce315a3ae25.gif)
+In this example we see what happens when the ground collision force and the force which attracts them to the snitch are turned off. They're all repulsed away from one another and end up spreading out. 
+
+![Record3](https://user-images.githubusercontent.com/23039052/109377458-c91df080-7888-11eb-8f0d-c9e1f5b99f66.gif)
+This is an example of the fully featured game in play. I've artificially boosted Gryffindor's points count in order to demonstrate the effect of the underdog mechanic. We can see Slytherin's agents have a slightly higher top speed, enabling them to chase down the snitch a little quicker. We also see the score keeping UI implemented. Once a team accumulates 100 points a "Team WINS THE GAME" statement replaces the usual scores as shown below.
+
+![Screenshot 2021-02-26 232004](https://user-images.githubusercontent.com/23039052/109377516-30d43b80-7889-11eb-8504-c5fdb8884b4b.png)
+
+
+
