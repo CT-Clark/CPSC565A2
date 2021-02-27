@@ -32,7 +32,8 @@ namespace Complete
             }
             else
             {
-                messageText.text = "";
+                gameWinner = GetGameWinner();
+                messageText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(gameWinner.teamColor) + ">" + gameWinner.teamText + ": </color> WINS THE GAME";
             }
         }
 
@@ -75,7 +76,6 @@ namespace Complete
                     return teams[i];
             }
 
-            // If no Teams have enough rounds to win, return null.
             return null;
         }
     }
