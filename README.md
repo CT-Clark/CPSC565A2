@@ -61,6 +61,9 @@ In order to use the gamera during play the QWEASD and arrow keys will be used. T
 // ----- Respawn Implementation ----- // 
 Respawning is implemented by generation a random number between 0 and 1000 inclusive, and if it's below 10 then the agent is free to resume the game. This gives a variable number of frames which the agent must wait through. 
 
+// ----- Snitch Implementation ----- //
+The snitch flies randomly by picking a random point within the arena and attempting to fly towards it. This ends up building up enough momentum that the snitch often flies back and forth from one side to the other. Because the snitch is bound by artificially set limits, the agents in their quest to catch the snitch are also soft-bounded within this environment as well. Once the snitch is 'caught' (An agents collides with it) then its location is changed to a random location within its possible range of locations. The snitch also has a light source on it fo a little bit better tracking. 
+
 ----------------------------------
 // ----- EXAMPLE GAMEPLAY ----- //
 ----------------------------------
@@ -75,5 +78,5 @@ This is an example of the fully featured game in play. I've artificially boosted
 
 ![Screenshot 2021-02-26 232004](https://user-images.githubusercontent.com/23039052/109377516-30d43b80-7889-11eb-8504-c5fdb8884b4b.png)
 
-
-
+We also see that the camera is capable of moving within the same game to a new vantage point![Screenshot 2021-02-26 232402](https://user-images.githubusercontent.com/23039052/109377652-c96abb80-7889-11eb-86b3-1b5920996cb1.png)
+.
