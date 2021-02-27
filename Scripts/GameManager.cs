@@ -1,3 +1,5 @@
+// This script manages running the game
+
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
