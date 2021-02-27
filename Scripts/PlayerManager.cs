@@ -13,6 +13,9 @@ public class PlayerManager : MonoBehaviour
         Rigidbody = GetComponent<Rigidbody>();
     }
 
+    /// <summary>
+    /// Run before the first frame. Used to assign fields
+    /// </summary>
     void Start()
     {
         // Colour the players
@@ -31,6 +34,8 @@ public class PlayerManager : MonoBehaviour
             aggressiveness = BoxMuller(22f, 3f);
             maxExhaustion = BoxMuller(65f, 13f);
             underDogValue = BoxMuller(10f, 2f);
+            nearCaptainBonus = BoxMuller(1.2f, 0.05f);
+            captainDetectionRadius = BoxMuller(8f, 3f);
         }
         else // Team is Slytherin
         {
@@ -39,6 +44,8 @@ public class PlayerManager : MonoBehaviour
             aggressiveness = BoxMuller(30f, 7f);
             maxExhaustion = BoxMuller(50f, 15f);
             underDogValue = BoxMuller(7f, 1f);
+            nearCaptainBonus = BoxMuller(1.1f, 0.05f);
+            captainDetectionRadius = BoxMuller(10f, 5f);
         }
 
         Rigidbody.mass = weight;
@@ -49,13 +56,17 @@ public class PlayerManager : MonoBehaviour
     #region Field/Properties
 
     private Rigidbody Rigidbody; // Reference to this player's Rigidbody component
-    public TeamManager team; // Reference to the team this player belongs to
-    public TeamManager otherTeam;
     private GameObject snitch; // Reference to hold the snitch to figure out where to move
     private Transform target;
     private float collisionAvoidanceRadiusThreshold = 5; // Radius to calculate collision avoidance
     private bool recovering = false;
-    public bool spawning = false;
+    private bool spawning = false;
+    public TeamManager team; // Reference to the team this player belongs to
+    public TeamManager otherTeam;
+    public bool captain = false; // Whether or not this player is the team captain
+    public bool nearCaptain = false;
+    public float nearCaptainBonus;
+    public float captainDetectionRadius;
     public Color playerColor; // This player's teamcolour
     public Vector3 spawnPoint; // Point this individual player spawned at to respawn at
     public string teamText; // Name of the team this player belongs to
@@ -153,16 +164,17 @@ public class PlayerManager : MonoBehaviour
 
         Vector3 velocity = Rigidbody.velocity;
         Vector3 acceleration = Vector3.zero;
+        float nearCaptainValue = CheckIfNearCaptain() ? nearCaptainBonus : 1.0f;
 
         // Change the acceleration
-        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target)); // Attraction to the snitch
-        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce());   // Repel from other players force
-        acceleration += NormalizeSteeringForce(GroundAvoidanceForce()) * 5;
+        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target), nearCaptainValue); // Attraction to the snitch
+        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce(), nearCaptainValue);   // Repel from other players force
+        acceleration += NormalizeSteeringForce(GroundAvoidanceForce(), nearCaptainValue) * 5;
 
 
         acceleration /= Rigidbody.mass / 75f; // Heavier objects accelerate more slowly
         velocity += acceleration * Time.deltaTime;
-        velocity = velocity.normalized * Mathf.Clamp(velocity.magnitude, 0, otherTeam.points > team.points + 2 ? maxVelocity + underDogValue : maxVelocity);
+        velocity = velocity.normalized * Mathf.Clamp(velocity.magnitude, 0, (otherTeam.points > team.points + 2 ? maxVelocity + underDogValue : maxVelocity) * nearCaptainValue);
         Rigidbody.velocity = velocity;
         transform.up = Rigidbody.velocity.normalized; // Orient the model the proper way
 
@@ -177,9 +189,9 @@ public class PlayerManager : MonoBehaviour
     /// <summary>
     /// Normalizes the steering force and clamps it.
     /// </summary>
-    private Vector3 NormalizeSteeringForce(Vector3 force)
+    private Vector3 NormalizeSteeringForce(Vector3 force, float nearCaptainValue)
     {
-        return force.normalized * Mathf.Clamp(force.magnitude, 0, otherTeam.points > team.points + 2 ? maxVelocity + underDogValue : maxVelocity);
+        return force.normalized * Mathf.Clamp(force.magnitude, 0, (otherTeam.points > team.points + 2 ? (maxVelocity + underDogValue) : maxVelocity) * nearCaptainValue);
     }
 
     /// <summary>
@@ -244,6 +256,32 @@ public class PlayerManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Checks to see if this player is near enough to their captain to benefit
+    /// </summary>
+    /// <returns>Whether this player is near the captain</returns>
+    private bool CheckIfNearCaptain()
+    {
+        bool result = false;
+        // Look around within a certain radius for other players to avoid collisions
+        Collider[] colliders = Physics.OverlapSphere(transform.position, captainDetectionRadius);
+        if (colliders.Length > 0 && !captain) // If you're the captain don't gain the bonus
+        {
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                PlayerManager pm = colliders[i].GetComponent<PlayerManager>();
+                if (pm)
+                {
+                    if (pm.captain && pm.teamText == teamText)
+                        result = true;
+                }
+            }
+        }
+
+        nearCaptain = result;
+        return result;
+    }
+
+    /// <summary>
     /// What to do when the object detects a collision.
     /// </summary>
     /// <param name="collision"></param>
@@ -256,14 +294,8 @@ public class PlayerManager : MonoBehaviour
         }
         else if (collision.gameObject.name == "Snitch") // What to do when you catch a snitch
         {
-            if (team.lastPointScored == true)
-            {
-                team.points += 2;
-            }
-            else
-            {
-                team.points += 1;
-            }
+            if (team.lastPointScored == true) { team.points += 2; }
+            else { team.points += 1; }
 
             team.lastPointScored = true;
             otherTeam.lastPointScored = false;
