@@ -1,9 +1,11 @@
 # CPSC565A2
+# Cody Clark
+# 30010560
 This repo holds an implementation of a simplified Quidditch simulation written in Unity for assignment 2 of CPSC565 - Emergent Computing - during the Winter semester of 2021. 
 
 Disclaimer:
 Some of the code implemented is from/based on Unity's TANKS! tutorial which can be found here: https://www.youtube.com/watch?v=paLLfWd2k5A&list=PLclF8feY8EKLw5Un6Z2Syt2_35qsdpnHt 
-https://github.com/omaddam/Boids-Simulation has also lent a sizeable amount of code and code ideas to this progect. Any code that looks similar between this project and those sources is likely because it is, and I take no credit. This project is not intended to be used for commercial purposes. 
+https://github.com/omaddam/Boids-Simulation has also lent a sizeable amount of code and code ideas to this progect. Any code that looks similar between this project and those sources is likely because it is, and I take no credit. This project is not intended to be used for commercial purposes. The skybox and material used for the ground are from Omar's project as well and is the product of its original owner, not me. All other models are included with the base version of Unity used. Unity version: Unity 2019.4.20f1
 
 -----------------------------
 // ----- THE PROJECT ----- //
