@@ -11,11 +11,6 @@ public class PlayerManager : MonoBehaviour
     public void Awake()
     {
         Rigidbody = GetComponent<Rigidbody>();
-        aggressiveness = UnityEngine.Random.Range(19, 37);
-        maxExhaustion = UnityEngine.Random.Range(35, 78);
-        maxVelocity = UnityEngine.Random.Range(14, 20);
-        weight = UnityEngine.Random.Range(63, 107);
-        underDogValue = UnityEngine.Random.Range(5f, 10f);
     }
 
     void Start()
@@ -34,8 +29,7 @@ public class PlayerManager : MonoBehaviour
         {
             otherTeam = GameObject.Find("GryffindorSpawn").GetComponent<TeamManager>();
         }
-
-        Rigidbody.mass = weight;
+ 
         if (teamText == "Gryffindor") {
             weight = BoxMuller(75f, 12f);
             maxVelocity = BoxMuller(18f, 2f);
@@ -52,10 +46,7 @@ public class PlayerManager : MonoBehaviour
             underDogValue = BoxMuller(7f, 1f);
         }
 
-        maxExhaustion = UnityEngine.Random.Range(35, 78);
-        maxVelocity = UnityEngine.Random.Range(14, 20);
-        weight = UnityEngine.Random.Range(63, 107);
-        underDogValue = UnityEngine.Random.Range(5f, 10f);
+        Rigidbody.mass = weight;
     }
 
     #endregion
@@ -177,12 +168,12 @@ public class PlayerManager : MonoBehaviour
         Vector3 acceleration = Vector3.zero;
 
         // Change the acceleration
-        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target)) * 5; // Attraction to the snitch
-        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce()) * 2;   // Repel from other players force
+        acceleration += NormalizeSteeringForce(ComputeSnitchAttraction(target)); // Attraction to the snitch
+        acceleration += NormalizeSteeringForce(ComputeCollisionAvoidanceForce());   // Repel from other players force
         acceleration += NormalizeSteeringForce(GroundAvoidanceForce()) * 5;
 
 
-        acceleration /= Rigidbody.mass / 30f; // Heavier objects accelerate more slowly
+        acceleration /= Rigidbody.mass / 75f; // Heavier objects accelerate more slowly
         velocity += acceleration * Time.deltaTime;
         velocity = velocity.normalized * Mathf.Clamp(velocity.magnitude, 0, otherTeam.points > team.points ? maxVelocity + underDogValue : maxVelocity);
         Rigidbody.velocity = velocity;
@@ -203,11 +194,14 @@ public class PlayerManager : MonoBehaviour
     /// </summary>
     private Vector3 NormalizeSteeringForce(Vector3 force)
     {
-        //Debug.Log(otherTeam.points > team.points ? "Underdog maxVelocity: " + maxVelocity + underDogValue : "Not underdog maxVelocity: " + maxVelocity);
         return force.normalized * Mathf.Clamp(force.magnitude, 0, otherTeam.points > team.points ? maxVelocity + underDogValue : maxVelocity);
-        
     }
 
+    /// <summary>
+    /// Computer the attraction force towards the snitch
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns>Vector3</returns>
     private Vector3 ComputeSnitchAttraction(Transform target)
     {
         // Compute force
