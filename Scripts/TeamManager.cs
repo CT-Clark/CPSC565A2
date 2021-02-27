@@ -1,3 +1,5 @@
+// This script manages the generation of players on each team, as well as keeping track of the team's score
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,8 +19,13 @@ public class TeamManager : MonoBehaviour
         // Create new players
         for (int i = 0; i < numberOfPlayers; i++)
         {
-            CreatePlayer();
+            CreatePlayer(i);
         }
+    }
+
+    void Start()
+    {
+
     }
 
     #endregion
@@ -65,7 +72,7 @@ public class TeamManager : MonoBehaviour
     /// <summary>
     /// Creates a single player around the spawn's location
     /// </summary>
-    private void CreatePlayer()
+    private void CreatePlayer(int playerNumber)
     {
         if (_players == null)
             _players = new List<PlayerManager>();
@@ -84,6 +91,8 @@ public class TeamManager : MonoBehaviour
         playerScript.playerColor = teamColor;
         playerScript.teamText = teamText;
         player.name = "Player";
+        if (playerNumber == 0)
+            playerScript.captain = true;
     }
 
     #endregion
