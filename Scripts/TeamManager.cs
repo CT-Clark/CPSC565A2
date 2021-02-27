@@ -19,48 +19,39 @@ public class TeamManager : MonoBehaviour
         {
             CreatePlayer();
         }
-
-    }
-
-    /// <summary>
-    /// Generates the players on the team.
-    /// </summary>
-    /// <param name="numberOfPlayers">The number of players to be generated on this team.</param>
-    public void Initialize()
-    {
-        
     }
 
     #endregion
 
     #region Fields/Properties
 
-    [HideInInspector] public int wins = 0;
-    public Color teamColor;
-    public int points = 0; // Current number of points
-    public string teamText; // Name of the team
-
     [SerializeField]
-    public GameObject PlayerTemplate;
-
-    public GameObject player; // A reference to a player object
-    [HideInInspector] public int teamNumber;
-    private Rigidbody Rigidbody;
-
+    private GameObject playersParent; // Reference to the object to hold all the players, reduces screen cluttering
+    [SerializeField]
+    private List<PlayerManager> _players; // List of players
+    public List<PlayerManager> players { get { return _players; } } // A way to get the players
+    public int numberOfPlayers; // Number of players to instantiate
     public Transform spawnTransform;
-
-    [SerializeField]
-    private GameObject playersParent;
-
-    [SerializeField]
-    private List<PlayerManager> _players;
-    public List<PlayerManager> players { get { return _players; } }
-
-    public int numberOfPlayers;
-
+    [HideInInspector] public int wins = 0; // Whether or not this team has won
+    public int points = 0; // Current number of points
+    public Color teamColor;
+    public string teamText; // Name of the team
+    public bool lastPointScored = false;
+    public GameObject PlayerTemplate; // Reference to the player prefab
+    public GameObject player; // A reference to a player object
+    
     #endregion
 
     #region Methods
+
+    /*
+    /// <summary
+    /// Start is called before the first frame update
+    /// </summary>
+    void Start()
+    {
+        
+    }
 
     /// <summary>
     /// Update is called once per frame
@@ -69,15 +60,10 @@ public class TeamManager : MonoBehaviour
     {
 
     }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    */
 
     /// <summary>
-    /// Creates a single player around the spawn location's location
+    /// Creates a single player around the spawn's location
     /// </summary>
     private void CreatePlayer()
     {
@@ -85,20 +71,19 @@ public class TeamManager : MonoBehaviour
             _players = new List<PlayerManager>();
 
         GameObject player = GameObject.Instantiate(PlayerTemplate, playersParent.transform);
-
         PlayerManager playerScript = player.GetComponent<PlayerManager>();
-        player.transform.position = new Vector3
-        (
-            spawnTransform.position.x + Random.Range(-10f, 10f),
-            0,
-            spawnTransform.position.z + Random.Range(-10f, 10f)
-        );
 
-        playerScript.spawnPoint = playerScript.transform;
+        // Change the player's location
+        float spawnX = spawnTransform.position.x + Random.Range(-10f, 10f);
+        float spawnY = 2;
+        float spawnZ = spawnTransform.position.z + Random.Range(-10f, 10f);
+        player.transform.position = new Vector3(spawnX, spawnY, spawnZ);
+
+        // Assign member variables for the player
+        playerScript.spawnPoint = new Vector3(spawnX, spawnY, spawnZ);
         playerScript.playerColor = teamColor;
         playerScript.teamText = teamText;
-
-        playerScript.Initialize(this);
+        player.name = "Player";
     }
 
     #endregion
